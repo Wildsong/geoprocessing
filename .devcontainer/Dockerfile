@@ -1,8 +1,4 @@
-#-------------------------------------------------------------------------------------------------------------
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
-#-------------------------------------------------------------------------------------------------------------
-
+# This image is based on Ubuntu.
 FROM osgeo/gdal:latest
 
 # Avoid warnings by switching to noninteractive
@@ -16,27 +12,32 @@ ARG USERNAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-# Uncomment the following COPY line and the corresponding lines in the `RUN` command if you wish to
-# include your requirements in the image itself. It is suggested that you only do this if your
-# requirements rarely (if ever) change.
-#COPY requirements.txt /tmp/pip-tmp/
+#ENV PIP_TARGET=/usr/local/share/pip-global
+#ENV PYTHONPATH=${PYTHONPATH}:${PIP_TARGET}
+#ENV PATH=${PATH}:${PIP_TARGET}/bin
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3-pip git && \
-    apt-get install -y --no-install-recommends sudo && \
-    apt-get purge -y --auto-remove && rm -rf /var/lib/apt/lists/*
+ENV LANG C.UTF-8
 
-# Install python packages
-RUN python3 -m pip --disable-pip-version-check --no-cache-dir install flask\
-    #-r requirements.txt \
-    && rm -rf /tmp/pip-tmp \
-    #
-    # Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
-    && groupadd --gid $USER_GID $USERNAME \
+RUN apt-get update \
+    && apt-get -y install --no-install-recommends apt-utils dialog 2>&1 \
+    && apt-get install -y --no-install-recommends sudo git python3-pip python3-setuptools pylint3 \
+    && apt-get install -y --no-install-recommends python3-pylint-flask python3-flask-restful python3-flask-script \
+    # Clean up
+    && apt-get autoremove -y
+# These make the container smaller for production but are a pain in development
+#    && apt-get clean -y \
+#    && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
+RUN groupadd --gid $USER_GID $USERNAME \
     && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
     # [Optional] Add sudo support for the non-root user
-    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME\
-    && chmod 0440 /etc/sudoers.d/$USERNAME
+    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME \
+    #
+    # Create alternate global install location that both uses have rights to access
+    && mkdir -p /usr/local/share/pip-global \
+    && chown ${USERNAME}:root /usr/local/share/pip-global
 
-
-
+# Switch back to dialog for any ad-hoc use of apt-get
+ENV DEBIAN_FRONTEND=dialog
