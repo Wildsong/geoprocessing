@@ -3,7 +3,7 @@
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
 #-------------------------------------------------------------------------------------------------------------
 
-FROM osgeo/gdal:alpine-normal-latest
+FROM osgeo/gdal:latest
 
 # Avoid warnings by switching to noninteractive
 ENV DEBIAN_FRONTEND=noninteractive
@@ -19,10 +19,16 @@ ARG USER_GID=$USER_UID
 # Uncomment the following COPY line and the corresponding lines in the `RUN` command if you wish to
 # include your requirements in the image itself. It is suggested that you only do this if your
 # requirements rarely (if ever) change.
-# COPY requirements.txt /tmp/pip-tmp/
+#COPY requirements.txt /tmp/pip-tmp/
 
-# Configure apt and install packages
-RUN python -m pip --disable-pip-version-check --no-cache-dir install -r requirements.txt \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3-pip git && \
+    apt-get install -y --no-install-recommends sudo && \
+    apt-get purge -y --auto-remove && rm -rf /var/lib/apt/lists/*
+
+# Install python packages
+RUN python3 -m pip --disable-pip-version-check --no-cache-dir install flask\
+    #-r requirements.txt \
     && rm -rf /tmp/pip-tmp \
     #
     # Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
