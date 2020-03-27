@@ -6,7 +6,9 @@ app = Flask(__name__)
 # run from a button click
 # but I have not done that yet
 
+from osgeo import gdal
+
 @app.route("/")
 def hello():
-    print("Here be a console message.")
+    print("Here be a console message.", gdal.__version__)
     return app.send_static_file("index.html")

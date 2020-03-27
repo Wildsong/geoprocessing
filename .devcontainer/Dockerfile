@@ -20,7 +20,7 @@ ENV LANG C.UTF-8
 
 RUN apt-get update \
     && apt-get -y install --no-install-recommends apt-utils dialog 2>&1 \
-    && apt-get install -y --no-install-recommends sudo git python3-pip python3-setuptools pylint3 \
+    && apt-get install -y --no-install-recommends sudo git python3-pip python3-setuptools pylint3 python3-wheel \
     && apt-get install -y --no-install-recommends python3-pylint-flask python3-flask-restful python3-flask-script \
     # Clean up
     && apt-get autoremove -y
